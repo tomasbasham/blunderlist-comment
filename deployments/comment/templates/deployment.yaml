@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "comment.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "comment.name" . }}
+    helm.sh/chart: {{ include "comment.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "comment.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "comment.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        serving: "true"
+    spec:
+      containers:
+      - name: extensible-service-proxy
+        image: gcr.io/endpoints-release/endpoints-runtime:1
+        args: [
+          "--http2_port",       "8080",
+          "--backend",          "grpc://127.0.0.1:50051",
+          "--service",          "{{ .Values.proxy.service }}",
+          "--rollout_strategy", "managed"
+        ]
+        ports:
+        - name: proxy
+          containerPort: 8080
+          protocol: TCP
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: PGDATABASE
+          value: {{ .Values.database.name }}
+        - name: PGUSER
+          value: {{ .Values.database.user }}
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "comment.fullname" . }}
+              key: databasePassword
+        ports:
+        - containerPort: 50051
+          protocol: TCP
+      livenessProbe:
+        command: ["grpc_health_probe", "-addr=:50051"]
+      readinessProbe:
+        command: ["grpc_health_probe", "-addr=:50051"]
