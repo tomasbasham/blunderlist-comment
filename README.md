@@ -1,7 +1,24 @@
 # blunderlist-comment
 
-This README outlines the details of collaborating on this Go application. A
-short introduction of this app could easily go here.
+A fictitious todo application through which to teach how to implement a
+microservice architecture. For the full list of services required to run this
+application visit
+[Blunderlist](https://github.com/tomasbasham?utf8=✓&tab=repositories&q=blunderlist)
+on GitHub.
+
+This repository implements an API that manages comments and their creation,
+providing an isolated data abstraction from other components of the overall
+system. Data from this service may be further decorated with data obtained from
+other services in some downstream closer to the client.
+
+The intent of this repository is to provide the most optimal API surface for
+the domain with which it is concerned, issuing unique resource handles that may
+be referred to in other services.
+
+The code here attempts to follow the principles of [Domain Driven
+Design](https://www.google.com/search?q=domain-driven+design); where my take on
+the subject can be seen on [my
+blog](https://tomasbasham.dev/development/2019/10/26/domain-driven-design-in-practice).
 
 ## Prerequisites
 
