@@ -1,0 +1,68 @@
+steps:
+
+  # Generate protobuf stubs.
+- name: tomasbasham/protoc:3.6.1-go
+  args: ['-I', './proto', '--go_out=plugins=grpc:.', 'comment.proto']
+
+  # Build the Docker image.
+- name: gcr.io/cloud-builders/docker
+  args: [
+    'build',
+    '--tag', 'eu.gcr.io/$PROJECT_ID/blunderlist/comment:$COMMIT_SHA',
+    '--tag', 'eu.gcr.io/$PROJECT_ID/blunderlist/comment:latest',
+    '--label', 'org.label-schema.build-date="$(date -Is)"',
+    '--label', 'org.label-schema.name="Blunderlist Comment API"',
+    '--label', 'org.label-schema.description="Go API backend for the Blunderlist Comment"',
+    '--label', 'org.label-schema.url="https://blunderlist.com"',
+    '--label', 'org.label-schema.vcs-url="https://github.com/tomasbasham/blunderlist-comment/"',
+    '--label', 'org.label-schema.vcs-ref="$COMMIT_SHA"',
+    '--label', 'org.label-schema.vendor="Tomas Basham"',
+    '--label', 'org.label-schema.version="$TAG_NAME"',
+    '--label', 'org.label-schema.schema-version="1.0"',
+    '.'
+  ]
+
+  # Push api image to registry.
+- name: gcr.io/cloud-builders/docker
+  args: ['push', 'eu.gcr.io/$PROJECT_ID/blunderlist/comment:$COMMIT_SHA']
+
+  # Fetch Helm dependencies.
+- name: gcr.io/$PROJECT_ID/helm
+  args: ['dependency', 'build', 'deployments/comment']
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=europe-west2-b'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=istio-cluster'
+
+  # Deploy release to Kubernetes Engine.
+- name: gcr.io/$PROJECT_ID/helm
+  entrypoint: 'sh'
+  args:
+  - '-c'
+  - |
+    /builder/helm.bash upgrade blunderlist-comment deployments/comment \
+      --namespace blunderlist \
+      --install \
+      --set image.repository=eu.gcr.io/$PROJECT_ID/blunderlist/comment \
+      --set image.tag=$COMMIT_SHA \
+      --set proxy.service=comment.blunderlist.endpoints.$PROJECT_ID.cloud.goog \
+      --set database.password=$$DATABASE_PASSWORD \
+      --set gcloud-sqlproxy.serviceAccountKey=$$DATABASE_SERVICE_ACCOUNT_KEY \
+      --set gcloud-sqlproxy.cloudsql.instances[0].instance=postgres-development01 \
+      --set gcloud-sqlproxy.cloudsql.instances[0].project=$PROJECT_ID \
+      --set gcloud-sqlproxy.cloudsql.instances[0].region=europe-west2-c \
+      --set gcloud-sqlproxy.cloudsql.instances[0].port=5432
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=europe-west2-b'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=istio-cluster'
+  secretEnv:
+  - 'DATABASE_PASSWORD'
+  - 'DATABASE_SERVICE_ACCOUNT_KEY'
+
+images:
+- 'eu.gcr.io/$PROJECT_ID/blunderlist/comment:latest'
+
+secrets:
+- kmsKeyName: projects/dev-servers-170213/locations/global/keyRings/secrets/cryptoKeys/key
+  secretEnv:
+    DATABASE_PASSWORD: "CiQAfM/DAGTQDwH268tJotefZG/BB4hCCjAwMgV4vcV3VDxe6PkSMgBAzsC7WLciWOglqCg7rk6js0E/D3wD8Gfc0YQZ1iprjGjSJOql+5pNtHeyBpyEoJxE"
+    DATABASE_SERVICE_ACCOUNT_KEY: "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"

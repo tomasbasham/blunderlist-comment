@@ -8,5 +8,6 @@ deployments/
 .travis.yml
 *.proto
 api-config.yaml
+cloudbuild.yaml
 Dockerfile
 README.md
