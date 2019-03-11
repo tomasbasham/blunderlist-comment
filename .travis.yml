@@ -1,0 +1,19 @@
+---
+language: generic
+
+sudo: required
+dist: trusty
+
+services:
+- docker
+
+install:
+- docker build -t comment --target builder .
+
+script:
+- docker run --rm comment golint -set_exit_status ./...
+- docker run --rm comment go vet ./...
+- docker run --rm comment go test ./...
+
+notifications:
+  email: false
