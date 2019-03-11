@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package comment.blunderlist.v1;
+
+option go_package = "blunderlist_comment_v1";
+option java_package = "com.blunderlist.comment.v1";
+option java_multiple_files = true;
+option java_outer_classname = "CommentProtos";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service Comment {
+  rpc ListComments(CommentListRequest) returns (stream CommentResponse);
+  rpc GetComment(CommentQuery) returns (CommentResponse);
+  rpc CreateComment(CommentCreateRequest) returns (CommentResponse);
+  rpc UpdateComment(CommentUpdateRequest) returns (CommentResponse);
+  rpc DeleteComment(CommentQuery) returns (google.protobuf.Empty);
+}
+
+message CommentListRequest {
+  uint64 parent_id = 1;
+}
+
+message CommentQuery {
+  uint64 id = 1;
+}
+
+message CommentCreateRequest {
+  uint64 parent_id = 1;
+  string text = 2;
+}
+
+message CommentUpdateRequest {
+  uint64 id = 1;
+  string text = 2;
+}
+
+message CommentResponse {
+  uint64 id =  1;
+  uint64 parent_id = 2;
+  string text = 3;
+  google.protobuf.Timestamp create_time = 4;
+}

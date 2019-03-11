@@ -1,0 +1,13 @@
+---
+type: "google.api.Service"
+config_version: 3
+name: "comment.blunderlist.endpoints.dev-servers-170213.cloud.goog"
+title: "Blunderlist Comment"
+documentation:
+  summary: "API backend for the Blunderlist Comment microservice"
+apis:
+- name: "comment.blunderlist.v1.Comment"
+usage:
+  rules:
+  - selector: "*"
+    allow_unregistered_calls: true

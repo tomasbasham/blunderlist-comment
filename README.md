@@ -39,6 +39,14 @@ You will need the following things properly installed on your computer.
 * `docker run --rm -it -p 8080:8080 --env-file .env comment`
 * Visit your app at [http://localhost:8080](http://localhost:8080).
 
+### Rebuilding Protobuf Definitions
+
+When changes to the API surface are made it is necessary to update the
+generated protobuf definitions and any code that uses them. A docker image with
+the `protoc` compiler has been made to make this far simpler.
+
+* `docker run --rm -v $(pwd):/usr/src/app tomasbasham/protoc:3.6.1-go -I ./proto --go_out=plugins=grpc:. comment.proto`
+
 ## Further Reading / Useful Links
 
 * [Go](https://golang.org/)

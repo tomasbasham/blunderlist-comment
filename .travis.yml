@@ -8,6 +8,7 @@ services:
 - docker
 
 install:
+- docker run --rm -v $(pwd):/usr/src/app tomasbasham/protoc:3.6.1-go -I ./proto --go_out=plugins=grpc:. comment.proto
 - docker build -t comment --target builder .
 
 script:

@@ -5,5 +5,7 @@
 .env
 .gitignore
 .travis.yml
+*.proto
+api-config.yaml
 Dockerfile
 README.md
